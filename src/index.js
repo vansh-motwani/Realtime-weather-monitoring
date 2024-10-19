@@ -1,77 +1,125 @@
 // src/index.js
 const { getWeather } = require("./services/weatherService");
 const WeatherData = require('./models/WeatherData'); // Import the WeatherData model
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const express = require('express');
+const router = express.Router();
+
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
 
 //const dailyWeatherData = []; // Store weather data for daily aggregation
 
 async function collectWeatherData(city) {
   try {
     const weatherData = await getWeather(city);
-    const currentTemp = weatherData.main.temp;
+    console.log("DATA",weatherData)
+    const checked_city = weatherData['name']
+    const min_temp= weatherData['main']['temp_min']
+    const max_temp= weatherData['main']['temp_max']
+    const pressure = weatherData['main']['pressure']
+    const sea_level = weatherData['main']['sea_level']
+    const grnd_level= weatherData['main']['grnd_level']
+    const wind_speed = weatherData['wind']['speed']
+    const wind_degree = weatherData['wind']['deg']
+    const cloud_count = weatherData['clouds']['all']
+    const humidity = weatherData['main']['humidity']
+  
 
     const newWeatherData = new WeatherData({
-      date: new Date().toISOString().split("T")[0],
-      timestamp: new Date().toISOString(),
-      temperature: currentTemp,
-      condition: weatherData.weather[0].description,
+      checked_city,
+      min_temp,
+      max_temp,
+      pressure,
+      sea_level,
+      grnd_level,
+      wind_speed,
+      wind_degree,
+      cloud_count,
+      humidity
     });
 
-    // Save to MongoDB
     await newWeatherData.save();
-    // Push the collected weather data to our dailyWeatherData array
-
-    console.log(`Weather data saved for ${city}:`, newWeatherData);
+    console.log("DATA SAVED")
   } catch (error) {
     console.error("Error in collectWeatherData:", error);
   }
 }
 
 async function main() {
-  const city = "Delhi"; // Change this city as needed
 
-  // Fetch initial weather data
-  await collectWeatherData(city);
+  mongoose.connect("mongodb+srv://TEST:12345@mubustest.yfyj3.mongodb.net/weather_app", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  }).then(() => console.log("MongoDB connected"))
+    .catch(err => console.log(err));
+  
+  app.get('/', async (req, res) => {
+    const data = await WeatherData.find()
+    res.json({data})
+    res.send('Backend is activated');
+  });
+
+  app.post('/save', (req, res) => {
+    const {city} = req.body;
+    collectWeatherData(city);
+    res.status(201).json({message: 'WEATHER DATA SAVED SUCCESFULLY'}) 
+  });
+
+
+
+
+
+  // const city = "Delhi"; 
+  // await collectWeatherData(city);
 
   // Set interval to collect weather data every 5 minutes
-  setInterval(async () => {
-    await collectWeatherData(city);
-    await calculateDailyAggregates();
-  }, 5000); // 5 minutes in milliseconds
+  // setInterval(async () => {
+  //   const city = "Delhi"
+  //   await collectWeatherData(city);
+  // }, 10000); // 5 minutes in milliseconds
 
   // You can call a function to calculate aggregates whenever needed
 }
 
-async function calculateDailyAggregates() {
-  try {
-    const aggregates = await WeatherData.aggregate([
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } }, // Group by date
-          maxTemp: { $max: "$temperature" },
-          minTemp: { $min: "$temperature" },
-          totalTemp: { $sum: "$temperature" },
-          count: { $sum: 1 },
-          dominantCondition: { $first: "$condition" }, // This can be enhanced for better logic
-        },
-      },
-      {
-        $project: {
-          date: "$_id", // Rename the field
-          averageTemp: { $divide: ["$totalTemp", "$count"] }, // Calculate average
-          maxTemp: 1,
-          minTemp: 1,
-          dominantCondition: 1,
-          _id: 0, // Exclude the _id field from the result
-        },
-      },
-    ]);
+// async function calculateDailyAggregates() {
+//   try {
+//     const aggregates = await WeatherData.aggregate([
+//       {
+//         $group: {
+//           _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } }, // Group by date
+//           maxTemp: { $max: "$temperature" },
+//           minTemp: { $min: "$temperature" },
+//           totalTemp: { $sum: "$temperature" },
+//           count: { $sum: 1 },
+//           dominantCondition: { $first: "$condition" }, // This can be enhanced for better logic
+//         },
+//       },
+//       {
+//         $project: {
+//           date: "$_id", // Rename the field
+//           averageTemp: { $divide: ["$totalTemp", "$count"] }, // Calculate average
+//           maxTemp: 1,
+//           minTemp: 1,
+//           dominantCondition: 1,
+//           _id: 0, // Exclude the _id field from the result
+//         },
+//       },
+//     ]);
 
-    console.log('Daily Aggregates:', aggregates);
-    return aggregates; // Return the calculated aggregates
-  } catch (error) {
-    console.error('Error calculating daily aggregates:', error);
-  }
-}
+//     console.log('Daily Aggregates:', aggregates);
+//     return aggregates; // Return the calculated aggregates
+//   } catch (error) {
+//     console.error('Error calculating daily aggregates:', error);
+//   }
+// }
 
 // Run the main function
+
+
 main();
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

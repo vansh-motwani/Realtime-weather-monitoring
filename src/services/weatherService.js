@@ -1,10 +1,11 @@
 // src/services/weatherService.js
-const axios = require('axios');
 require('dotenv').config();
 
-const API_KEY = process.env.API_KEY;
-const BASE_URL = 'http://api.openweathermap.org/data/2.5/weather';
+const axios = require('axios');
 
+const API_KEY = '7a7e588bea985de76274fe2d4815450a';
+const BASE_URL = 'http://api.openweathermap.org/data/2.5/weather';
+console.log("API KEY",API_KEY)
 async function getWeather(city) {
   try {
     const url = `${BASE_URL}?q=${city}&appid=${API_KEY}&units=metric`;
