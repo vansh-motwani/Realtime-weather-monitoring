@@ -76,10 +76,10 @@ async function main() {
 
 
 
-  setInterval(async () => {
-    const city = "Delhi"; 
-    await collectWeatherData(city);
-  }, 10000); 
+  // setInterval(async () => {
+  //   const city = "Delhi"; 
+  //   await collectWeatherData(city);
+  // }, 10000); 
   
 }
 
