@@ -14,10 +14,9 @@ app.use(bodyParser.json());
 //const dailyWeatherData = []; // Store weather data for daily aggregation
 
 async function collectWeatherData(city) {
-  try {
+   
     const weatherData = await getWeather(city);
     console.log("DATA",weatherData)
-    const checked_city = weatherData['name']
     const min_temp= weatherData['main']['temp_min']
     const max_temp= weatherData['main']['temp_max']
     const pressure = weatherData['main']['pressure']
@@ -30,7 +29,7 @@ async function collectWeatherData(city) {
   
 
     const newWeatherData = new WeatherData({
-      checked_city,
+      city,
       min_temp,
       max_temp,
       pressure,
@@ -44,9 +43,7 @@ async function collectWeatherData(city) {
 
     await newWeatherData.save();
     console.log("DATA SAVED")
-  } catch (error) {
-    console.error("Error in collectWeatherData:", error);
-  }
+    
 }
 
 async function main() {
@@ -68,21 +65,22 @@ async function main() {
     collectWeatherData(city);
     res.status(201).json({message: 'WEATHER DATA SAVED SUCCESFULLY'}) 
   });
+  
+  app.post('/live_search', async (req, res) => {
+    const {city} = req.body;
+    const weatherData = await getWeather(city);
+    res.status(201).json({weatherData}) 
+  });
 
 
 
 
 
-  // const city = "Delhi"; 
-  // await collectWeatherData(city);
-
-  // Set interval to collect weather data every 5 minutes
-  // setInterval(async () => {
-  //   const city = "Delhi"
-  //   await collectWeatherData(city);
-  // }, 10000); // 5 minutes in milliseconds
-
-  // You can call a function to calculate aggregates whenever needed
+  setInterval(async () => {
+    const city = "Delhi"; 
+    await collectWeatherData(city);
+  }, 10000); 
+  
 }
 
 // async function calculateDailyAggregates() {
