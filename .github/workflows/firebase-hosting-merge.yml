@@ -10,30 +10,13 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the repository
       - uses: actions/checkout@v4
-
-      # Set up Flutter (for building the web app)
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 'stable'
-
-      # Install Flutter dependencies
-      - name: Install dependencies
-        working-directory: ./weather_frontend
-        run: flutter pub get
-
-      # Build the Flutter web app
-      - name: Build Flutter Web App
-        working-directory: ./weather_frontend
-        run: flutter build web --release
-
-      # Deploy to Firebase Hosting
+      - run: ""
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_REALTIME_WEATHER_MONITOR_485FF }}
+          firebaseServiceAccount: ${{
+            secrets.FIREBASE_SERVICE_ACCOUNT_REALTIME_WEATHER_MONITOR_485FF }}
           channelId: live
           projectId: realtime-weather-monitor-485ff
-          entryPoint: ./weather_frontend  # Point to the directory with firebase.json
+          entryPoint:  ./weather_frontend # Modify this to point to firebase.json location
