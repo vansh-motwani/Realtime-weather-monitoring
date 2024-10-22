@@ -19,3 +19,4 @@ jobs:
             secrets.FIREBASE_SERVICE_ACCOUNT_REALTIME_WEATHER_MONITOR_485FF }}
           channelId: live
           projectId: realtime-weather-monitor-485ff
+          entryPoint:  weather_frontend\ # Modify this to point to firebase.json location
